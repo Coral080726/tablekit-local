@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TableKit Local v1.1 · 免安装桌面网页版</title>
+<style>
+:root{
+  --bg:#eef2f7;
+  --bg-deep:#e3e9f2;
+  --panel:#ffffff;
+  --panel-soft:#f7f9fc;
+  --ink:#16202f;
+  --ink-soft:#475569;
+  --ink-mute:#7b8798;
+  --line:#dbe3ee;
+  --line-soft:#e8eef6;
+  --brand:#1f6feb;
+  --brand-deep:#1548a6;
+  --brand-soft:#e8f1ff;
+  --accent:#0f9488;
+  --accent-soft:#e2f7f4;
+  --warn:#b45309;
+  --warn-soft:#fff4e0;
+  --danger:#c2410c;
+  --ok:#0f7a4d;
+  --nav:#101b2d;
+  --nav-soft:#182640;
+  --radius:14px;
+  --shadow:0 1px 2px rgba(16,27,45,.06),0 10px 30px -18px rgba(16,27,45,.35);
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Consolas,"Liberation Mono",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(1200px 500px at 90% -10%,#dbe7ff 0%,rgba(219,231,255,0) 60%),
+    radial-gradient(900px 420px at -10% 0%,#d8f3ee 0%,rgba(216,243,238,0) 55%),
+    var(--bg);
+  color:var(--ink);
+  font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+button,input,select{font-family:inherit;font-size:inherit;color:inherit}
+h1,h2,h3,h4{margin:0;font-weight:650;letter-spacing:.2px}
+code{font-family:var(--mono);font-size:12px;background:var(--panel-soft);border:1px solid var(--line-soft);border-radius:5px;padding:1px 5px}
+
+/* ============ 顶栏 ============ */
+.topbar{
+  background:linear-gradient(120deg,var(--nav) 0%,#16233b 55%,#1a2c4a 100%);
+  color:#eaf1fb;
+  border-bottom:1px solid #0b1424;
+  position:sticky;top:0;z-index:50;
+  box-shadow:0 6px 24px -14px rgba(9,16,29,.8);
+}
+.topbar-inner{max-width:1480px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.logo{
+  width:38px;height:38px;border-radius:11px;flex:0 0 auto;
+  background:linear-gradient(140deg,#3d8bff,#0f9488);
+  display:grid;place-items:center;font-weight:800;font-size:17px;color:#fff;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.25),0 6px 16px -6px rgba(31,111,235,.8);
+}
+.brand h1{font-size:16.5px;color:#fff}
+.brand p{margin:0;font-size:11.5px;color:#93a6c4;letter-spacing:.3px}
+.brand-tag{
+  font-size:11px;border:1px solid rgba(147,198,255,.35);color:#b9d5ff;
+  padding:1px 8px;border-radius:999px;background:rgba(59,130,246,.12);white-space:nowrap;
+}
+.top-actions{margin-left:auto;display:flex;gap:9px;flex-wrap:wrap}
+.pill{
+  display:inline-flex;align-items:center;gap:7px;font-size:12px;color:#c7d6ee;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  border-radius:999px;padding:5px 11px;white-space:nowrap;
+}
+.dot{width:7px;height:7px;border-radius:50%;background:#3ddc97;box-shadow:0 0 0 3px rgba(61,220,151,.18)}
+
+/* ============ 布局 ============ */
+.wrap{max-width:1480px;margin:0 auto;padding:20px 22px 34px}
+.layout{display:grid;grid-template-columns:400px minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:1120px){.layout{grid-template-columns:1fr}}
+.card{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);overflow:hidden;
+}
+.card + .card{margin-top:16px}
+.card-head{
+  display:flex;align-items:center;gap:10px;padding:12px 16px;
+  background:linear-gradient(180deg,#fbfcfe,#f3f7fc);
+  border-bottom:1px solid var(--line-soft);
+}
+.card-head h2{font-size:13.5px;color:#1d2939}
+.card-head .num{
+  width:21px;height:21px;border-radius:7px;background:var(--brand-soft);color:var(--brand-deep);
+  font-size:11.5px;font-weight:700;display:grid;place-items:center;flex:0 0 auto;
+}
+.card-head .hint{margin-left:auto;font-size:11.5px;color:var(--ink-mute)}
+.card-body{padding:14px 16px}
+.card-body.tight{padding:10px 12px}
+
+/* ============ 拖拽区 ============ */
+.drop{
+  border:1.5px dashed #b9c9e0;border-radius:12px;
+  background:linear-gradient(180deg,#fbfdff,#f2f7ff);
+  padding:20px 16px;text-align:center;cursor:pointer;transition:.16s ease;
+}
+.drop:hover{border-color:var(--brand);background:linear-gradient(180deg,#f7fbff,#eaf3ff)}
+.drop.over{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 3px rgba(15,148,136,.12)}
+.drop .ico{font-size:26px;line-height:1;opacity:.85}
+.drop b{display:block;margin:7px 0 3px;font-size:13.5px;color:#20304a}
+.drop small{color:var(--ink-mute);font-size:11.5px}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  border:1px solid var(--line);background:var(--panel);color:var(--ink);
+  border-radius:9px;padding:7px 13px;font-size:13px;font-weight:550;cursor:pointer;
+  transition:.14s ease;white-space:nowrap;
+}
+.btn:hover{border-color:#b4c6de;background:#f7faff}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:linear-gradient(180deg,#2a7cf0,#1f6feb);border-color:#1b62d4;color:#fff;box-shadow:0 6px 16px -8px rgba(31,111,235,.9)}
+.btn.primary:hover{background:linear-gradient(180deg,#3185f6,#2472ee)}
+.btn.teal{background:linear-gradient(180deg,#12a698,#0f9488);border-color:#0c8378;color:#fff;box-shadow:0 6px 16px -8px rgba(15,148,136,.9)}
+.btn.dark{background:var(--nav-soft);border-color:#0d1729;color:#e7eefb}
+.btn.ghost{background:transparent}
+.btn.sm{padding:4px 9px;font-size:12px;border-radius:7px}
+.btn.xs{padding:2px 7px;font-size:11.5px;border-radius:6px}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-row{display:flex;gap:9px;flex-wrap:wrap}
+.btn-row.stack > .btn{flex:1 1 46%}
+
+/* ============ 文件列表 ============ */
+.file-list{margin-top:11px;display:flex;flex-direction:column;gap:6px;max-height:214px;overflow:auto;padding-right:2px}
+.file-item{
+  display:flex;align-items:center;gap:9px;padding:6px 9px;border:1px solid var(--line-soft);
+  border-radius:9px;background:var(--panel-soft);font-size:12.5px;
+}
+.file-item .fname{font-weight:600;color:#233247;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px}
+.file-item .meta{color:var(--ink-mute);font-size:11px;margin-left:auto;white-space:nowrap}
+.tag{font-size:10.5px;padding:1px 6px;border-radius:999px;border:1px solid;white-space:nowrap}
+.tag.utf8{color:#0f7a4d;background:#e9f9f1;border-color:#bfe9d4}
+.tag.gb{color:#b45309;background:var(--warn-soft);border-color:#f3d7a8}
+.tag.err{color:#b91c1c;background:#fdeaea;border-color:#f4c4c4}
+.icon-x{border:none;background:none;color:#9aa8bb;cursor:pointer;font-size:15px;line-height:1;padding:0 2px}
+.icon-x:hover{color:var(--danger)}
+.empty-line{color:var(--ink-mute);font-size:12px;text-align:center;padding:10px 0}
+
+/* ============ 表单 ============ */
+.field{margin-top:12px}
+.field:first-child{margin-top:0}
+.field > label.lbl{display:block;font-size:12px;font-weight:600;color:#334155;margin-bottom:5px}
+.check{display:flex;align-items:flex-start;gap:8px;font-size:12.8px;color:#334155;cursor:pointer;padding:3px 0;line-height:1.45}
+.check input[type=checkbox]{margin:3px 0 0;accent-color:var(--brand);width:14px;height:14px;flex:0 0 auto;cursor:pointer}
+.check span small{display:block;color:var(--ink-mute);font-size:11px}
+.sel{
+  width:100%;appearance:none;background:#fff url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23707f95' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 10px center;
+  border:1px solid var(--line);border-radius:9px;padding:7px 30px 7px 10px;font-size:12.8px;color:#233247;cursor:pointer;
+}
+.sel:focus,.inp:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(31,111,235,.13)}
+.inp{border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:12.8px;width:100%}
+.seg{display:flex;background:#eef2f8;border:1px solid var(--line);border-radius:9px;padding:2px;gap:2px}
+.seg button{
+  flex:1;border:none;background:transparent;border-radius:7px;padding:6px 8px;font-size:12.3px;font-weight:550;
+  color:#55637a;cursor:pointer;transition:.13s;
+}
+.seg button.on{background:#fff;color:var(--brand-deep);box-shadow:0 1px 3px rgba(16,27,45,.14)}
+.hidden{display:none !important}
+
+/* ============ 勾选列面板 ============ */
+.colbox{border:1px solid var(--line);border-radius:10px;background:var(--panel-soft);max-height:150px;overflow:auto;padding:7px}
+.colbox .check{padding:2.5px 2px;font-size:12.3px;white-space:nowrap}
+.collist{display:flex;flex-wrap:wrap;gap:6px}
+.chip{
+  display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);background:#fff;
+  border-radius:999px;padding:3px 9px;font-size:11.8px;color:#334155;cursor:pointer;user-select:none;
+}
+.chip.on{border-color:#a9c7f5;background:var(--brand-soft);color:var(--brand-deep)}
+.chip input{accent-color:var(--brand);width:12px;height:12px;margin:0}
+.mini-tools{display:flex;gap:8px;margin-left:auto;font-size:11.5px}
+.mini-tools button{border:none;background:none;color:var(--brand);cursor:pointer;padding:0;font-size:11.5px;font-weight:600}
+.mini-tools button:hover{text-decoration:underline}
+.hintline{font-size:11.5px;color:var(--ink-mute);margin-top:6px}
+
+/* ============ 脱敏规则 ============ */
+.mask-list{display:flex;flex-direction:column;gap:6px;max-height:230px;overflow:auto}
+.mask-row{display:flex;align-items:center;gap:8px;border:1px solid var(--line-soft);border-radius:9px;padding:5px 8px;background:var(--panel-soft)}
+.mask-row .mcol{font-size:12.3px;font-weight:600;color:#233247;flex:0 0 auto;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mask-row .sel{width:auto;flex:1 1 auto;min-width:0;padding:4px 26px 4px 8px;font-size:12px;border-radius:7px}
+.suggest{font-size:11px;color:var(--accent);white-space:nowrap}
+
+/* ============ 右侧 ============ */
+.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;padding:14px 16px}
+@media (max-width:820px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.stat{border:1px solid var(--line-soft);border-radius:11px;padding:9px 11px;background:linear-gradient(180deg,#fbfcfe,#f4f8fd)}
+.stat .k{font-size:11.5px;color:var(--ink-mute);display:flex;align-items:center;gap:5px}
+.stat .v{font-size:20px;font-weight:700;color:#16202f;letter-spacing:-.3px;font-variant-numeric:tabular-nums;line-height:1.35}
+.stat .v small{font-size:11.5px;font-weight:600;color:var(--ink-mute);margin-left:3px}
+.stat.brand .v{color:var(--brand-deep)}
+.stat.teal .v{color:#0b7a70}
+.stat.warn .v{color:#a35a06}
+.stat.ok .v{color:var(--ok)}
+
+.table-toolbar{display:flex;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);background:var(--panel-soft);flex-wrap:wrap}
+.table-toolbar .spacer{margin-left:auto}
+.table-toolbar .note{font-size:11.5px;color:var(--ink-mute)}
+.scroll-x{overflow:auto;max-height:min(58vh,620px)}
+table.grid{border-collapse:separate;border-spacing:0;width:100%;font-size:12.4px}
+table.grid th,table.grid td{
+  border-bottom:1px solid var(--line-soft);padding:6px 10px;text-align:left;white-space:nowrap;
+  max-width:280px;overflow:hidden;text-overflow:ellipsis;
+}
+table.grid thead th{
+  position:sticky;top:0;z-index:2;background:#f1f6fc;color:#28405f;font-size:11.8px;font-weight:650;
+  border-bottom:1px solid var(--line);letter-spacing:.2px;
+}
+table.grid thead th .badge{
+  display:inline-block;margin-left:5px;font-size:10px;font-weight:600;color:#7a5b12;background:#fdf1cd;
+  border:1px solid #f2dfa0;border-radius:999px;padding:0 5px;vertical-align:1px;
+}
+table.grid thead th .badge.mask{color:#0b6b62;background:#e0f6f2;border-color:#b6e7df}
+table.grid tbody tr:nth-child(even){background:#fafcff}
+table.grid tbody tr:hover{background:var(--brand-soft)}
+table.grid td.idx{color:#94a3b8;font-variant-numeric:tabular-nums;background:#fbfdff;position:sticky;left:0;z-index:1}
+table.grid thead th.idx{left:0;z-index:3}
+table.grid td.masked{color:#0b6b62;font-weight:600}
+table.grid td.datefix{color:#1f5fbf}
+table.grid td.empty{color:#cbd5e1;font-style:italic}
+
+.preview-empty{padding:44px 20px;text-align:center;color:var(--ink-mute)}
+.preview-empty .ico{font-size:30px;opacity:.5;display:block;margin-bottom:8px}
+
+/* ============ 输出 ============ */
+.out-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 16px}
+@media (max-width:900px){.out-grid{grid-template-columns:1fr}}
+.out-box{border:1px solid var(--line);border-radius:11px;padding:12px 13px;background:linear-gradient(180deg,#fff,#f8fbfe)}
+.out-box h4{font-size:12.6px;color:#1d2939;margin-bottom:3px;display:flex;align-items:center;gap:6px}
+.out-box p{margin:0 0 10px;font-size:11.6px;color:var(--ink-mute);line-height:1.5}
+.out-box .btn-row{flex-wrap:wrap}
+.split-files{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px;max-height:104px;overflow:auto}
+.split-files .chip{font-size:11.2px;cursor:pointer}
+.log{
+  border-top:1px solid var(--line-soft);padding:10px 16px 12px;font-size:11.8px;color:var(--ink-soft);
+  display:flex;gap:14px;flex-wrap:wrap;background:var(--panel-soft);
+}
+.log b{color:#243b5a;font-variant-numeric:tabular-nums}
+.log .warn{color:var(--warn)}
+
+footer{
+  max-width:1480px;margin:0 auto;padding:8px 22px 30px;color:#7c8899;font-size:11.8px;text-align:center;line-height:1.7;
+}
+footer .sep{margin:0 7px;color:#c3ccd8}
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);opacity:0;pointer-events:none;
+  background:#101b2d;color:#eaf1fb;border-radius:11px;padding:9px 16px;font-size:12.8px;
+  box-shadow:0 14px 40px -12px rgba(6,12,24,.75);transition:.22s ease;z-index:100;max-width:82vw;
+  border:1px solid rgba(255,255,255,.08);
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.err{background:#5b1a14;border-color:#8a2c20}
+.noscript{padding:16px;background:#fff4e0;border:1px solid #f3d7a8;border-radius:10px;margin:16px;color:#8a5306}
+</style>
+</head>
+<body>
+<noscript><div class="noscript">本页面需要启用 JavaScript 才能运行（纯本地计算，不联网）。</div></noscript>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="logo">TK</div>
+      <div>
+        <h1>TableKit Local <span class="brand-tag">v1.1 免安装</span></h1>
+        <p>多表合并 · 清洗 · 去重 · 脱敏 · 分表打包 · 单文件离线</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <span class="pill"><span class="dot"></span>离线模式 · 零外部请求</span>
+      <button class="btn teal sm" id="btnSample" type="button">⚡ 加载示例数据一键体验</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="layout">
+    <!-- ================= 左侧配置 ================= -->
+    <div>
+      <section class="card">
+        <div class="card-head"><span class="num">1</span><h2>读取数据文件</h2><span class="hint" id="fileHint">支持 .csv / .tsv</span></div>
+        <div class="card-body">
+          <div class="drop" id="drop" tabindex="0" role="button" aria-label="选择或拖拽 CSV/TSV 文件">
+            <div class="ico">📥</div>
+            <b>拖拽 CSV / TSV 文件到此处</b>
+            <small>或点击选择多个文件 · 自动识别 UTF-8 / GB18030 编码</small>
+            <input type="file" id="fileInput" accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values" multiple hidden>
+          </div>
+          <div class="file-list" id="fileList"><div class="empty-line">尚未加载文件，可直接点击上方【加载示例数据一键体验】</div></div>
+          <div class="btn-row" style="margin-top:10px">
+            <button class="btn sm ghost" id="btnClearFiles" type="button">清空文件</button>
+            <button class="btn sm ghost" id="btnReload" type="button">重新载入</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head"><span class="num">2</span><h2>合并与清洗</h2></div>
+        <div class="card-body">
+          <label class="check"><input type="checkbox" id="optMerge" checked><span>多表合并（按列名并集对齐）<small>不同文件列顺序/多少不一致也能对齐</small></span></label>
+          <label class="check"><input type="checkbox" id="optSource" checked><span>添加 <code>_source_file</code> 来源列<small>便于追溯每行来自哪个文件</small></span></label>
+          <div style="height:1px;background:var(--line-soft);margin:10px 0"></div>
+          <label class="check"><input type="checkbox" id="optTrim" checked><span>清理首尾空白与控制符<small>去除 \t、\u00a0 及不可见控制字符</small></span></label>
+          <label class="check"><input type="checkbox" id="optDropEmpty" checked><span>剔除全空行</span></label>
+          <label class="check"><input type="checkbox" id="optDate" checked><span>日期标准化为 <code>YYYY-MM-DD</code><small>把 2026/1/5、2026.01.05 统一为 2026-01-05</small></span></label>
+          <div class="field" id="dateFieldWrap">
+            <label class="lbl">日期列（可多选，留空则自动识别日期类列名）</label>
+            <div class="collist" id="dateCols"><span class="hintline">加载文件后显示可勾选列</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head"><span class="num">3</span><h2>去重</h2><span class="hint">保留首次出现</span></div>
+        <div class="card-body">
+          <label class="check"><input type="checkbox" id="optDedupe" checked><span>启用去重</span></label>
+          <div class="field">
+            <div class="seg" id="dedupeMode">
+              <button type="button" data-mode="all" class="on">全行去重</button>
+              <button type="button" data-mode="key">按主键列去重</button>
+            </div>
+          </div>
+          <div class="field hidden" id="keyColsWrap">
+            <label class="lbl">主键列（勾选一个或多个）</label>
+            <div class="colbox" id="keyCols"><span class="hintline">加载文件后显示可勾选列</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head"><span class="num">4</span><h2>隐私脱敏</h2><span class="hint">仅本地打码</span></div>
+        <div class="card-body">
+          <div class="mask-list" id="maskList"><div class="empty-line">加载文件后可给任意列指定脱敏规则</div></div>
+          <div class="hintline">规则示例：手机号 → <code>138****5678</code>，身份证 / 邮箱 / 姓名按位打码。</div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head"><span class="num">5</span><h2>输出与拆分</h2></div>
+        <div class="card-body">
+          <div class="field" style="margin-top:0">
+            <label class="lbl">按某列拆分为多个 CSV（可选）</label>
+            <select class="sel" id="splitCol"><option value="">不拆分，输出单个合并文件</option></select>
+          </div>
+          <label class="check" style="margin-top:8px"><input type="checkbox" id="optSplitBom" checked><span>拆分子文件同样写入 UTF-8 BOM</span></label>
+          <div class="btn-row" style="margin-top:10px">
+            <button class="btn primary" id="btnDownload" type="button">⬇ 下载合并 CSV</button>
+            <button class="btn dark" id="btnZip" type="button">🗜 打包下载 ZIP</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ================= 右侧结果 ================= -->
+    <div>
+      <section class="card">
+        <div class="card-head"><h2>统计摘要</h2><span class="hint" id="statHint">实时随配置变化</span>
+          <div class="mini-tools"><button type="button" id="btnResetCfg">恢复默认配置</button></div>
+        </div>
+        <div class="stats">
+          <div class="stat brand"><div class="k">原始行数</div><div class="v" id="stInput">0</div></div>
+          <div class="stat warn"><div class="k">剔除全空行</div><div class="v" id="stEmpty">0</div></div>
+          <div class="stat teal"><div class="k">清洗后行数</div><div class="v" id="stClean">0</div></div>
+          <div class="stat ok"><div class="k">去重剔除</div><div class="v" id="stDup">0</div></div>
+          <div class="stat"><div class="k">最终行数 / 列数</div><div class="v" id="stFinal">0<small>/0</small></div></div>
+        </div>
+        <div class="table-toolbar">
+          <h2 style="font-size:13px">实时预览（前 30 行）</h2>
+          <span class="note" id="previewNote"></span>
+          <span class="spacer"></span>
+          <span class="note" id="dateFixedNote"></span>
+        </div>
+        <div class="scroll-x" id="previewWrap">
+          <div class="preview-empty" id="previewEmpty"><span class="ico">🗂️</span>加载文件后，这里将实时显示合并 / 清洗 / 去重 / 脱敏后的结果预览</div>
+          <table class="grid hidden" id="previewTable"><thead></thead><tbody></tbody></table>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head"><h2>文件输出</h2><span class="hint">全部在浏览器内存中生成，不联网</span></div>
+        <div class="out-grid">
+          <div class="out-box">
+            <h4>📄 合并 CSV</h4>
+            <p>带 UTF-8 BOM、CRLF 换行的标准 CSV，Excel 双击直接打开不乱码。</p>
+            <div class="btn-row">
+              <button class="btn sm primary" id="btnDownload2" type="button">下载合并 CSV</button>
+            </div>
+          </div>
+          <div class="out-box">
+            <h4>🗂 按列拆分</h4>
+            <p>选择拆分列后，可逐个下载或一键打包为无压缩 ZIP（STORE）。</p>
+            <div class="btn-row">
+              <button class="btn sm dark" id="btnDownloadParts" type="button" disabled>逐个下载拆分文件</button>
+              <button class="btn sm ghost" id="btnZip2" type="button" disabled>打包 ZIP</button>
+            </div>
+            <div class="split-files" id="splitFiles"><span class="hintline">尚未选择拆分列</span></div>
+          </div>
+        </div>
+        <div class="log" id="logLine">
+          <span>文件：<b id="lgFiles">0</b></span>
+          <span>字段：<b id="lgCols">0</b></span>
+          <span>日期标准化：<b id="lgDates">0</b> 处</span>
+          <span>脱敏列：<b id="lgMask">0</b></span>
+          <span>拆分份数：<b id="lgParts">0</b></span>
+          <span id="lgWarn"></span>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<footer>
+  TableKit Local v1.1 <span class="sep">·</span> 100% 浏览器本地内存计算，数据绝不上传网络 <span class="sep">·</span> 单文件离线版，无需安装任何运行环境
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* TableKit Local v1.1 — 纯本地离线表格工具箱 */
+(function () {
+  'use strict';
+
+  /* =====================================================================
+   * 0. 工具函数
+   * ===================================================================== */
+  const $ = (id) => document.getElementById(id);
+  const SAMPLE_MARK = '__tablekit_sample__';
+  const CONTROL_RE = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F\u200B\uFEFF]/g;
+  const DATE_RE = /^(\d{4})[\/.\-](\d{1,2})[\/.\-](\d{1,2})$/;
+  const DATE_HINT_RE = /日期|时间|date|time|日|day/i;
+  const MAX_LOGGED = 6;
+
+  function toast(msg, isErr) {
+    const el = $('toast');
+    el.textContent = msg;
+    el.className = 'toast show' + (isErr ? ' err' : '');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => { el.className = 'toast'; }, 2600);
+  }
+
+  function fmtBytes(n) {
+    if (n < 1024) return n + ' B';
+    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+    return (n / 1048576).toFixed(2) + ' MB';
+  }
+
+  function el(tag, attrs, text) {
+    const node = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach((k) => node.setAttribute(k, attrs[k]));
+    if (text !== undefined && text !== null) node.textContent = String(text);
+    return node;
+  }
+
+  function safeName(name) {
+    let s = String(name == null ? '' : name).trim();
+    s = s.replace(/[\\/:*?"<>|\x00-\x1F]/g, '_').replace(/\s+/g, '_');
+    s = s.replace(/^\.+/, '').replace(/\.+$/, '');
+    if (!s) s = 'empty';
+    if (s.length > 60) s = s.slice(0, 60);
+    return s;
+  }
+
+  function dedupeHeaders(list) {
+    const seen = Object.create(null);
+    return list.map((h, i) => {
+      let name = String(h == null ? '' : h).trim() || ('column_' + (i + 1));
+      if (name in seen) {
+        seen[name] += 1;
+        name = name + '_' + seen[name];
+      } else {
+        seen[name] = 0;
+      }
+      return name;
+    });
+  }
+
+  /* =====================================================================
+   * 1. 文件解码：BOM / UTF-8 有效性检测 → 回退 GB18030
+   * ===================================================================== */
+  function detectDecoding(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let notes = [];
+    if (bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) {
+      const text = new TextDecoder('utf-8').decode(bytes.subarray(3));
+      return { text: text, encoding: 'UTF-8 (BOM)', tag: 'utf8', ok: true, notes: ['检测到 UTF-8 BOM，已自动剥离'] };
+    }
+    if (bytes.length >= 2 && bytes[0] === 0xFF && bytes[1] === 0xFE) {
+      const text = new TextDecoder('utf-16le').decode(bytes.subarray(2));
+      return { text: text, encoding: 'UTF-16LE (BOM)', tag: 'utf8', ok: true, notes: ['检测到 UTF-16LE BOM'] };
+    }
+    if (bytes.length >= 2 && bytes[0] === 0xFE && bytes[1] === 0xFF) {
+      const text = new TextDecoder('utf-16be').decode(bytes.subarray(2));
+      return { text: text, encoding: 'UTF-16BE (BOM)', tag: 'utf8', ok: true, notes: ['检测到 UTF-16BE BOM'] };
+    }
+    // 严格模式校验 UTF-8，遇非法字节序列立即判定失败
+    let isValidUtf8 = true;
+    try {
+      new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    } catch (e) {
+      isValidUtf8 = false;
+    }
+    if (isValidUtf8) {
+      const text = new TextDecoder('utf-8').decode(bytes);
+      return { text: text, encoding: 'UTF-8', tag: 'utf8', ok: true, notes: [] };
+    }
+    // 非 UTF-8：Windows 中文 CSV 常见 GB18030 / GBK
+    try {
+      const text = new TextDecoder('gb18030').decode(bytes);
+      return {
+        text: text,
+        encoding: 'GB18030',
+        tag: 'gb',
+        ok: true,
+        notes: ['含非 UTF-8 字节，已自动按 GB18030（兼容 GBK/GB2312）解码']
+      };
+    } catch (e) {
+      notes.push('GB18030 解码失败，已用 UTF-8 替换非法字符');
+      const text = new TextDecoder('utf-8').decode(bytes);
+      return { text: text, encoding: 'UTF-8 (replace)', tag: 'err', ok: false, notes: notes };
+    }
+  }
+
+  /* =====================================================================
+   * 2. RFC4180 CSV 解析器（正确处理引号内逗号、换行、"" 转义）
+   * ===================================================================== */
+  function parseDelimited(text, delimiter) {
+    const rows = [];
+    let row = [];
+    let field = '';
+    let i = 0;
+    const n = text.length;
+    let inQuotes = false;
+    if (n && text.charCodeAt(0) === 0xFEFF) i = 1;
+    while (i < n) {
+      const ch = text[i];
+      if (inQuotes) {
+        if (ch === '"') {
+          if (i + 1 < n && text[i + 1] === '"') {
+            field += '"';
+            i += 2;
+            continue;
+          }
+          inQuotes = false;
+          i += 1;
+          continue;
+        }
+        field += ch;
+        i += 1;
+        continue;
+      }
+      if (ch === '"' && field === '') {
+        inQuotes = true;
+        i += 1;
+        continue;
+      }
+      if (ch === delimiter) {
+        row.push(field);
+        field = '';
+        i += 1;
+        continue;
+      }
+      if (ch === '\r' || ch === '\n') {
+        row.push(field);
+        rows.push(row);
+        row = [];
+        field = '';
+        if (ch === '\r' && i + 1 < n && text[i + 1] === '\n') i += 2;
+        else i += 1;
+        continue;
+      }
+      field += ch;
+      i += 1;
+    }
+    if (field !== '' || row.length) {
+      row.push(field);
+      rows.push(row);
+    }
+    return rows;
+  }
+
+  function sniffDelimiter(text, fallback) {
+    const sample = text.slice(0, 8192);
+    const candidates = [',', '\t', ';', '|'];
+    let best = fallback || ',';
+    let bestScore = -1;
+    candidates.forEach((d) => {
+      let count = 0;
+      let inQ = false;
+      for (let i = 0; i < sample.length; i++) {
+        const c = sample[i];
+        if (c === '"') inQ = !inQ;
+        else if (!inQ && c === d) count++;
+      }
+      if (count > bestScore) { bestScore = count; best = d; }
+    });
+    return bestScore <= 0 ? (fallback || ',') : best;
+  }
+
+  function tableFromText(text, filename) {
+    const lower = filename.toLowerCase();
+    const fallback = lower.endsWith('.tsv') || lower.endsWith('.tab') ? '\t' : ',';
+    const delimiter = sniffDelimiter(text, fallback);
+    const records = parseDelimited(text, delimiter);
+    while (records.length && records[records.length - 1].every((c) => !String(c).trim())) records.pop();
+    if (!records.length) return { headers: [], rows: [], delimiter: delimiter };
+    const headers = dedupeHeaders(records[0].map((h) => h));
+    const rows = [];
+    for (let r = 1; r < records.length; r++) {
+      const rec = records[r];
+      const obj = {};
+      for (let c = 0; c < headers.length; c++) {
+        obj[headers[c]] = rec[c] === undefined ? '' : rec[c];
+      }
+      rows.push(obj);
+    }
+    return { headers: headers, rows: rows, delimiter: delimiter };
+  }
+
+  /* =====================================================================
+   * 3. 合并 / 清洗 / 去重 / 脱敏
+   * ===================================================================== */
+  function mergeTables(tables, addSource) {
+    const union = [];
+    const seen = Object.create(null);
+    tables.forEach((t) => {
+      t.headers.forEach((h) => {
+        if (!(h in seen)) { seen[h] = true; union.push(h); }
+      });
+    });
+    if (addSource) union.unshift('_source_file');
+    const rows = [];
+    tables.forEach((t) => {
+      t.rows.forEach((r) => {
+        const item = {};
+        for (let i = 0; i < union.length; i++) {
+          const h = union[i];
+          item[h] = h === '_source_file' ? t.name : (r[h] === undefined ? '' : r[h]);
+        }
+        rows.push(item);
+      });
+    });
+    return { headers: union, rows: rows };
+  }
+
+  function cleanCell(value, trim) {
+    let text = value == null ? '' : String(value);
+    text = text.replace(CONTROL_RE, '');
+    if (trim) text = text.trim().replace(/^[\s\u00A0\u3000]+|[\s\u00A0\u3000]+$/g, '');
+    return text;
+  }
+
+  function autoDateColumns(headers) {
+    return headers.filter((h) => DATE_HINT_RE.test(h));
+  }
+
+  function cleanRows(data, cfg) {
+    const dateCols = cfg.dateCols && cfg.dateCols.length ? cfg.dateCols : autoDateColumns(data.headers);
+    const dateSet = Object.create(null);
+    if (cfg.normalizeDates) dateCols.forEach((h) => { dateSet[h] = true; });
+    const out = [];
+    const dateFixed = Object.create(null);
+    let droppedEmpty = 0;
+    let datesTotal = 0;
+    const headers = data.headers;
+    for (let r = 0; r < data.rows.length; r++) {
+      const row = data.rows[r];
+      const item = {};
+      let hasValue = false;
+      const ignore = cfg.ignoreForEmpty || [];
+      for (let i = 0; i < headers.length; i++) {
+        const h = headers[i];
+        let val = cleanCell(row[h], cfg.trim);
+        if (dateSet[h]) {
+          const m = DATE_RE.exec(val);
+          if (m) {
+            const y = m[1];
+            const mo = parseInt(m[2], 10);
+            const d = parseInt(m[3], 10);
+            if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) {
+              val = y + '-' + String(mo).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+              dateFixed[h] = (dateFixed[h] || 0) + 1;
+              datesTotal++;
+            }
+          }
+        }
+        if (val !== '' && ignore.indexOf(h) < 0) hasValue = true;
+        item[h] = val;
+      }
+      if (cfg.dropEmpty && !hasValue) { droppedEmpty++; continue; }
+      out.push(item);
+    }
+    return { rows: out, droppedEmpty: droppedEmpty, dateFixed: dateFixed, datesTotal: datesTotal, dateCols: dateCols };
+  }
+
+  function rowSignature(row, keys) {
+    const parts = [];
+    for (let i = 0; i < keys.length; i++) {
+      const v = row[keys[i]];
+      parts.push(String(v == null ? '' : v).trim().toLowerCase());
+    }
+    return parts.join('\u0001');
+  }
+
+  function dedupeRows(headers, rows, enabled, mode, keyCols) {
+    if (!enabled) return { rows: rows, removed: 0, keys: [] };
+    let keys = headers;
+    if (mode === 'key') {
+      const picked = (keyCols || []).filter((k) => headers.indexOf(k) >= 0);
+      if (!picked.length) return { rows: rows, removed: 0, keys: [], noKey: true };
+      keys = picked;
+    }
+    const seen = Object.create(null);
+    const out = [];
+    let removed = 0;
+    for (let i = 0; i < rows.length; i++) {
+      const sig = rowSignature(rows[i], keys);
+      if (sig in seen) { removed++; continue; }
+      seen[sig] = true;
+      out.push(rows[i]);
+    }
+    return { rows: out, removed: removed, keys: keys, noKey: false };
+  }
+
+  const MASKERS = {
+    phone: function (v) {
+      const digits = String(v).replace(/\D/g, '');
+      if (digits.length >= 7) return digits.slice(0, 3) + '*'.repeat(digits.length - 7) + digits.slice(-4);
+      return v;
+    },
+    idcard: function (v) {
+      const s = String(v);
+      if (s.length >= 10) return s.slice(0, 6) + '*'.repeat(s.length - 10) + s.slice(-4);
+      if (s.length >= 4) return s[0] + '*'.repeat(s.length - 2) + s[s.length - 1];
+      return v;
+    },
+    email: function (v) {
+      const s = String(v);
+      const at = s.lastIndexOf('@');
+      if (at <= 0) return v;
+      const local = s.slice(0, at);
+      const domain = s.slice(at + 1);
+      let masked;
+      if (local.length <= 2) masked = local.slice(0, 1) + '*';
+      else masked = local[0] + '*'.repeat(local.length - 2) + local[local.length - 1];
+      return masked + '@' + domain;
+    },
+    name: function (v) {
+      const s = String(v);
+      if (!s) return v;
+      if (s.length === 1) return s;
+      return s[0] + '*'.repeat(s.length - 1);
+    }
+  };
+
+  const MASK_LABELS = { '': '不脱敏', phone: '手机号 phone', idcard: '身份证 idcard', email: '邮箱 email', name: '姓名 name' };
+
+  function applyMasking(headers, rows, rules) {
+    const active = Object.keys(rules).filter((c) => rules[c] && MASKERS[rules[c]] && headers.indexOf(c) >= 0);
+    if (!active.length) return { rows: rows, cols: active };
+    const out = rows.map((row) => {
+      const item = {};
+      for (let i = 0; i < headers.length; i++) {
+        const h = headers[i];
+        const v = row[h];
+        if (active.indexOf(h) >= 0 && v !== '' && v != null) item[h] = MASKERS[rules[h]](String(v));
+        else item[h] = v;
+      }
+      return item;
+    });
+    return { rows: out, cols: active };
+  }
+
+  /* =====================================================================
+   * 4. 导出：UTF-8 BOM CSV + 纯 JS ZIP (STORE)
+   * ===================================================================== */
+  function csvCell(value) {
+    const s = value == null ? '' : String(value);
+    if (/[",\r\n]/.test(s) || /^\s|\s$/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+
+  function toCsvBytes(headers, rows, withBom) {
+    const pieces = [];
+    pieces.push(headers.map(csvCell).join(',') + '\r\n');
+    for (let r = 0; r < rows.length; r++) {
+      const row = rows[r];
+      const cells = new Array(headers.length);
+      for (let c = 0; c < headers.length; c++) cells[c] = csvCell(row[headers[c]]);
+      pieces.push(cells.join(',') + '\r\n');
+    }
+    const bytes = new TextEncoder().encode(pieces.join(''));
+    if (!withBom) return bytes;
+    const out = new Uint8Array(bytes.length + 3);
+    out[0] = 0xEF; out[1] = 0xBB; out[2] = 0xBF;
+    out.set(bytes, 3);
+    return out;
+  }
+
+  function utf8Bytes(str) { return new TextEncoder().encode(str); }
+
+  const CRC_TABLE = (function () {
+    const table = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      table[n] = c >>> 0;
+    }
+    return table;
+  })();
+
+  function crc32(bytes) {
+    let crc = 0xFFFFFFFF;
+    for (let i = 0; i < bytes.length; i++) crc = CRC_TABLE[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+    return (crc ^ 0xFFFFFFFF) >>> 0;
+  }
+
+  function dosDateTime(d) {
+    const time = ((d.getHours() & 31) << 11) | ((d.getMinutes() & 63) << 5) | ((Math.floor(d.getSeconds() / 2)) & 31);
+    const date = (((d.getFullYear() - 1980) & 127) << 9) | (((d.getMonth() + 1) & 15) << 5) | (d.getDate() & 31);
+    return { time: time, date: date };
+  }
+
+  /** 构造无压缩（STORE）ZIP，兼容 Windows 资源管理器 / macOS 解压 */
+  function buildZip(files, stamp) {
+    const d = stamp || new Date();
+    const dt = dosDateTime(d);
+    const chunks = [];
+    const central = [];
+    let offset = 0;
+    const enc = new TextEncoder();
+    const usedNames = Object.create(null);
+
+    files.forEach((f) => {
+      let name = String(f.name || 'file.csv').replace(/\\/g, '/');
+      if (usedNames[name]) {
+        const dot = name.lastIndexOf('.');
+        const base = dot > 0 ? name.slice(0, dot) : name;
+        const ext = dot > 0 ? name.slice(dot) : '';
+        usedNames[name] += 1;
+        name = base + '_' + usedNames[name] + ext;
+      } else {
+        usedNames[name] = 1;
+      }
+      const nameBytes = enc.encode(name);
+      const data = f.bytes instanceof Uint8Array ? f.bytes : new Uint8Array(f.bytes);
+      const crc = crc32(data);
+      const size = data.length;
+
+      const local = new Uint8Array(30 + nameBytes.length);
+      const lv = new DataView(local.buffer);
+      lv.setUint32(0, 0x04034b50, true);
+      lv.setUint16(4, 20, true);            // version needed
+      lv.setUint16(6, 0x0800, true);        // UTF-8 filename flag
+      lv.setUint16(8, 0, true);             // stored
+      lv.setUint16(10, dt.time, true);
+      lv.setUint16(12, dt.date, true);
+      lv.setUint32(14, crc, true);
+      lv.setUint32(18, size, true);
+      lv.setUint32(22, size, true);
+      lv.setUint16(26, nameBytes.length, true);
+      lv.setUint16(28, 0, true);
+      local.set(nameBytes, 30);
+      chunks.push(local, data);
+
+      const cd = new Uint8Array(46 + nameBytes.length);
+      const cv = new DataView(cd.buffer);
+      cv.setUint32(0, 0x02014b50, true);
+      cv.setUint16(4, 20, true);            // version made by
+      cv.setUint16(6, 20, true);            // version needed
+      cv.setUint16(8, 0x0800, true);
+      cv.setUint16(10, 0, true);
+      cv.setUint16(12, dt.time, true);
+      cv.setUint16(14, dt.date, true);
+      cv.setUint32(16, crc, true);
+      cv.setUint32(20, size, true);
+      cv.setUint32(24, size, true);
+      cv.setUint16(28, nameBytes.length, true);
+      cv.setUint16(30, 0, true);
+      cv.setUint16(32, 0, true);
+      cv.setUint16(34, 0, true);
+      cv.setUint16(36, 0, true);
+      cv.setUint32(38, 0, true);
+      cv.setUint32(42, offset, true);
+      cd.set(nameBytes, 46);
+      central.push(cd);
+
+      offset += local.length + size;
+    });
+
+    let centralSize = 0;
+    central.forEach((c) => { centralSize += c.length; });
+    const end = new Uint8Array(22);
+    const ev = new DataView(end.buffer);
+    ev.setUint32(0, 0x06054b50, true);
+    ev.setUint16(8, files.length, true);
+    ev.setUint16(10, files.length, true);
+    ev.setUint32(12, centralSize, true);
+    ev.setUint32(16, offset, true);
+
+    const all = chunks.concat(central, [end]);
+    return new Blob(all, { type: 'application/zip' });
+  }
+
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 1500);
+  }
+
+  function stampName() {
+    const d = new Date();
+    const p = (x) => String(x).padStart(2, '0');
+    return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '_' + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
+  }
+
+  /* =====================================================================
+   * 5. 内置示例数据（两份跨部门模拟订单表）
+   * ===================================================================== */
+  const SAMPLE_A =
+    '订单号,客户姓名,手机号,邮箱,城市,下单日期,金额\r\n' +
+    'A1001,张三,13812345678,zhangsan@example.com,上海,2026/11/1,299.00\r\n' +
+    'A1002,李四,13987654321,lisi@test.org,北京,2026.11.02,599.00\r\n' +
+    'A1001,张三,13812345678,zhangsan@example.com,上海,2026-11-01,299.00\r\n' +
+    'A1003,"王五,",13700001234,www@corp.cn, 广州 ,2026.11.3,899.50\r\n' +
+    'A1004,吴敏,13655556666,15700001111@example.com,上海,2026/11/4,129.00\r\n' +
+    ', ,,, , , \r\n' +
+    'A1005,钱七,13800007777,qianqi@shop.com,深圳,2026/11/4,459.00';
+
+  const SAMPLE_B =
+    '订单号,客户姓名,手机号,城市,下单日期,金额,备注\r\n' +
+    'B2001,王小明,13700001111,深圳,2026/11/5,199.00,加急\r\n' +
+    'B2002,赵六,13622223333,上海,2026/11/6,399.00,\r\n' +
+    'B2003,孙怡,15012349876,北京,2026.11.6,259.00,"备注含逗号, 已用引号包裹"\r\n' +
+    'A1001,张三,13812345678,上海,2026/11/1,299.00,跨部门重复单\r\n' +
+    'B2004,周佳,13598765432,杭州,2026/11/7,666.00,"备注含\n换行符"\r\n' +
+    'B2005,郑一,13344445555,杭州,2026-11-08,88.80,';
+
+  /* =====================================================================
+   * 6. 状态
+   * ===================================================================== */
+  const state = {
+    files: [],      // {id,name,size,encoding,tag,notes,headers,rows,delimiter,sample}
+    dateCols: [],   // 用户选定日期列
+    keyCols: [],    // 用户选定主键列
+    dedupeMode: 'all',
+    maskRules: {},  // {col: rule}
+    splitCol: '',
+    result: null
+  };
+  let uid = 0;
+
+  const DEFAULTS = {
+    optMerge: true, optSource: true, optTrim: true, optDropEmpty: true, optDate: true,
+    optDedupe: true, optSplitBom: true
+  };
+
+  /* =====================================================================
+   * 7. 列名工具与文件读入
+   * ===================================================================== */
+  function dataHeaders() {
+    const out = [];
+    const seen = Object.create(null);
+    state.files.forEach((f) => f.headers.forEach((h) => {
+      if (!(h in seen)) { seen[h] = true; out.push(h); }
+    }));
+    return out;
+  }
+
+  function guessKeys(headers) {
+    const prefer = headers.filter((h) => /订单号|单号|编号|主键|^id$|手机号|证件/i.test(h));
+    if (prefer.length) return [prefer[0]];
+    return headers.length ? [headers[0]] : [];
+  }
+
+  function guessMask(col) {
+    const n = String(col).toLowerCase();
+    if (/手机|电话|联系方式|phone|mobile|tel/.test(n)) return 'phone';
+    if (/身份证|证件号|idcard|id_card/.test(n)) return 'idcard';
+    if (/邮箱|邮件|email|mail/.test(n)) return 'email';
+    if (/姓名|名字|name|联系人/.test(n)) return 'name';
+    return '';
+  }
+
+  function makeFileRecord(name, buffer, isSample) {
+    const dec = detectDecoding(buffer);
+    const table = tableFromText(dec.text, name);
+    return {
+      id: 'f' + (++uid),
+      name: name,
+      size: buffer.byteLength,
+      encoding: dec.encoding,
+      tag: dec.tag,
+      notes: dec.notes,
+      headers: table.headers,
+      rows: table.rows,
+      delimiter: table.delimiter,
+      sample: !!isSample
+    };
+  }
+
+  function afterFilesLoaded(added, failed) {
+    syncColumnSelections();
+    renderFileList();
+    renderColumnPickers();
+    recompute();
+    if (added > 0) {
+      toast('已加载 ' + added + ' 个文件' + (failed ? '，' + failed + ' 个失败' : '') + '，已自动识别编码并生成预览');
+    } else if (failed) {
+      toast('文件解析失败，请确认是 CSV / TSV 格式', true);
+    }
+  }
+
+  function addFiles(fileList) {
+    const list = Array.prototype.slice.call(fileList || []);
+    if (!list.length) return;
+    let pending = list.length;
+    let added = 0;
+    let failed = 0;
+    const done = function () {
+      if (--pending === 0) afterFilesLoaded(added, failed);
+    };
+    list.forEach((file) => {
+      if (!/\.(csv|tsv|tab|txt)$/i.test(file.name)) {
+        failed++;
+        toast('「' + file.name + '」不是 CSV / TSV 文件，已跳过', true);
+        done();
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function () {
+        try {
+          const rec = makeFileRecord(file.name, reader.result, false);
+          if (!rec.headers.length) {
+            failed++;
+            toast('「' + file.name + '」未解析到表头，已跳过', true);
+          } else {
+            state.files.push(rec);
+            added++;
+          }
+        } catch (e) {
+          failed++;
+          toast('读取「' + file.name + '」失败：' + (e && e.message ? e.message : e), true);
+        }
+        done();
+      };
+      reader.onerror = function () {
+        failed++;
+        toast('读取「' + file.name + '」失败', true);
+        done();
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  function syncColumnSelections() {
+    const headers = dataHeaders();
+    const keep = (list) => list.filter((c) => headers.indexOf(c) >= 0);
+
+    state.dateCols = keep(state.dateCols);
+    if (!state.dateCols.length) state.dateCols = autoDateColumns(headers).slice();
+
+    state.keyCols = keep(state.keyCols);
+    if (!state.keyCols.length) state.keyCols = guessKeys(headers);
+
+    const allowed = ['', 'phone', 'idcard', 'email', 'name'];
+    const rules = {};
+    headers.forEach((h) => {
+      const old = state.maskRules[h];
+      rules[h] = allowed.indexOf(old) >= 0 ? old : guessMask(h);
+    });
+    state.maskRules = rules;
+
+    if (state.splitCol && headers.indexOf(state.splitCol) < 0) state.splitCol = '';
+  }
+
+  /* =====================================================================
+   * 8. 渲染：文件列表 / 列勾选 / 预览 / 输出 / 日志
+   * ===================================================================== */
+  function renderFileList() {
+    const box = $('fileList');
+    box.textContent = '';
+    if (!state.files.length) {
+      box.appendChild(el('div', { class: 'empty-line' }, '尚未加载文件，可直接点击上方【加载示例数据一键体验】'));
+      $('fileHint').textContent = '支持 .csv / .tsv';
+      return;
+    }
+    state.files.forEach((f) => {
+      const item = el('div', { class: 'file-item' });
+      const tagCls = f.tag === 'utf8' ? 'utf8' : (f.tag === 'gb' ? 'gb' : 'err');
+      const tag = el('span', { class: 'tag ' + tagCls }, f.encoding);
+      tag.title = (f.notes && f.notes.length ? f.notes.join('；') : '编码检测：' + f.encoding);
+      const name = el('span', { class: 'fname' }, f.name);
+      name.title = f.name + (f.sample ? '（内置示例）' : '');
+      const meta = el('span', { class: 'meta' }, f.rows.length + ' 行 · ' + f.headers.length + ' 列 · ' + fmtBytes(f.size));
+      const x = el('button', { class: 'icon-x', type: 'button', title: '移除该文件' }, '×');
+      x.addEventListener('click', function () {
+        state.files = state.files.filter((it) => it.id !== f.id);
+        afterFilesLoaded(0, 0);
+      });
+      item.appendChild(tag);
+      item.appendChild(name);
+      item.appendChild(meta);
+      item.appendChild(x);
+      box.appendChild(item);
+    });
+    const total = state.files.reduce((s, f) => s + f.rows.length, 0);
+    $('fileHint').textContent = state.files.length + ' 个文件 · 共 ' + total + ' 行';
+  }
+
+  function renderColumnPickers() {
+    const headers = dataHeaders();
+
+    // a) 日期列
+    const dateBox = $('dateCols');
+    dateBox.textContent = '';
+    if (!headers.length) {
+      dateBox.appendChild(el('span', { class: 'hintline' }, '加载文件后显示可勾选列'));
+    } else {
+      headers.forEach((h) => {
+        const on = state.dateCols.indexOf(h) >= 0;
+        const lab = el('label', { class: 'chip' + (on ? ' on' : '') });
+        const cb = el('input', { type: 'checkbox' });
+        cb.checked = on;
+        cb.addEventListener('change', function () {
+          if (cb.checked) { if (state.dateCols.indexOf(h) < 0) state.dateCols.push(h); }
+          else state.dateCols = state.dateCols.filter((c) => c !== h);
+          lab.classList.toggle('on', cb.checked);
+          recompute();
+        });
+        lab.appendChild(cb);
+        lab.appendChild(document.createTextNode(h));
+        if (DATE_HINT_RE.test(h)) lab.title = '日期类列名（自动识别已勾选）';
+        dateBox.appendChild(lab);
+      });
+    }
+
+    // b) 主键列
+    const keyBox = $('keyCols');
+    keyBox.textContent = '';
+    if (!headers.length) {
+      keyBox.appendChild(el('span', { class: 'hintline' }, '加载文件后显示可勾选列'));
+    } else {
+      headers.forEach((h) => {
+        const lab = el('label', { class: 'check' });
+        const cb = el('input', { type: 'checkbox' });
+        cb.checked = state.keyCols.indexOf(h) >= 0;
+        cb.addEventListener('change', function () {
+          if (cb.checked) { if (state.keyCols.indexOf(h) < 0) state.keyCols.push(h); }
+          else state.keyCols = state.keyCols.filter((c) => c !== h);
+          recompute();
+        });
+        lab.appendChild(cb);
+        lab.appendChild(el('span', {}, h));
+        keyBox.appendChild(lab);
+      });
+    }
+    $('keyColsWrap').classList.toggle('hidden', !(state.dedupeMode === 'key' && $('optDedupe').checked));
+    $('dateFieldWrap').classList.toggle('hidden', !$('optDate').checked);
+
+    // c) 脱敏规则
+    const maskBox = $('maskList');
+    maskBox.textContent = '';
+    if (!headers.length) {
+      maskBox.appendChild(el('div', { class: 'empty-line' }, '加载文件后可给任意列指定脱敏规则'));
+    } else {
+      headers.forEach((h) => {
+        const row = el('div', { class: 'mask-row' });
+        const nameEl = el('span', { class: 'mcol' }, h);
+        nameEl.title = h;
+        row.appendChild(nameEl);
+        const sel = el('select', { class: 'sel', title: '为「' + h + '」选择脱敏规则' });
+        Object.keys(MASK_LABELS).forEach((v) => {
+          const opt = el('option', { value: v }, MASK_LABELS[v]);
+          if ((state.maskRules[h] || '') === v) opt.selected = true;
+          sel.appendChild(opt);
+        });
+        sel.addEventListener('change', function () {
+          state.maskRules[h] = sel.value;
+          recompute();
+        });
+        row.appendChild(sel);
+        if (!state.maskRules[h] && guessMask(h)) row.appendChild(el('span', { class: 'suggest' }, '建议 ' + guessMask(h)));
+        maskBox.appendChild(row);
+      });
+    }
+
+    // d) 拆分列
+    const splitSel = $('splitCol');
+    splitSel.textContent = '';
+    splitSel.appendChild(el('option', { value: '' }, '不拆分，输出单个合并文件'));
+    headers.forEach((h) => {
+      const o = el('option', { value: h }, '按「' + h + '」拆分');
+      if (state.splitCol === h) o.selected = true;
+      splitSel.appendChild(o);
+    });
+  }
+
+  function renderPreview(result) {
+    const table = $('previewTable');
+    const empty = $('previewEmpty');
+    const thead = table.querySelector('thead');
+    const tbody = table.querySelector('tbody');
+    thead.textContent = '';
+    tbody.textContent = '';
+    if (!result || !result.headers.length || !state.files.length) {
+      table.classList.add('hidden');
+      empty.classList.remove('hidden');
+      $('previewNote').textContent = '';
+      $('dateFixedNote').textContent = '';
+      return;
+    }
+    table.classList.remove('hidden');
+    empty.classList.add('hidden');
+
+    const maskCols = result.maskCols || [];
+    const dateCols = result.dateCols || [];
+
+    const headRow = el('tr');
+    headRow.appendChild(el('th', { class: 'idx' }, '#'));
+    result.headers.forEach((h) => {
+      const th = el('th', { title: h }, h);
+      if (maskCols.indexOf(h) >= 0) th.appendChild(el('span', { class: 'badge mask' }, '脱敏'));
+      else if (dateCols.indexOf(h) >= 0) th.appendChild(el('span', { class: 'badge' }, '日期'));
+      headRow.appendChild(th);
+    });
+    thead.appendChild(headRow);
+
+    const frag = document.createDocumentFragment();
+    result.rows.slice(0, 30).forEach((row, i) => {
+      const tr = el('tr');
+      tr.appendChild(el('td', { class: 'idx' }, String(i + 1)));
+      result.headers.forEach((h) => {
+        const v = row[h];
+        let cls = '';
+        if (v === '' || v == null) cls = 'empty';
+        else if (maskCols.indexOf(h) >= 0) cls = 'masked';
+        tr.appendChild(el('td', { class: cls, title: v == null ? '' : String(v) }, v === '' || v == null ? '—' : String(v)));
+      });
+      frag.appendChild(tr);
+    });
+    tbody.appendChild(frag);
+
+    $('previewNote').textContent = '共 ' + result.rows.length + ' 行' + (result.rows.length > 30 ? '，仅展示前 30 行' : '，已全部展示');
+    const df = result.dateFixed || {};
+    const parts = Object.keys(df).filter((k) => df[k] > 0).map((k) => k + ' ' + df[k] + ' 处');
+    $('dateFixedNote').textContent = parts.length ? '日期标准化：' + parts.join('，') : '';
+  }
+
+  function splitParts(result) {
+    if (!result || !state.splitCol) return [];
+    const col = state.splitCol;
+    if (result.headers.indexOf(col) < 0) return [];
+    const map = new Map();
+    result.rows.forEach((row) => {
+      const raw = row[col] == null ? '' : String(row[col]).trim();
+      const key = raw === '' ? '(空值)' : raw;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(row);
+    });
+    const parts = [];
+    map.forEach((rows, key) => {
+      parts.push({ key: key, rows: rows, filename: safeName(key) + '.csv' });
+    });
+    parts.sort((a, b) => String(a.key).localeCompare(String(b.key), 'zh-Hans-CN'));
+    return parts;
+  }
+
+  function renderOutput(result) {
+    const parts = splitParts(result);
+    const box = $('splitFiles');
+    box.textContent = '';
+    if (!state.splitCol) {
+      box.appendChild(el('span', { class: 'hintline' }, '尚未选择拆分列'));
+    } else if (!parts.length) {
+      box.appendChild(el('span', { class: 'hintline' }, '当前无数据可拆分'));
+    } else {
+      parts.forEach((p) => {
+        const chip = el('span', { class: 'chip' }, p.key + ' · ' + p.rows.length + ' 行');
+        chip.title = '点击单独下载 ' + p.filename;
+        chip.addEventListener('click', function () {
+          const bytes = toCsvBytes(result.headers, p.rows, $('optSplitBom').checked);
+          downloadBlob(new Blob([bytes], { type: 'text/csv;charset=utf-8' }), p.filename);
+          toast('已下载 ' + p.filename);
+        });
+        box.appendChild(chip);
+      });
+    }
+    const has = !!(result && result.rows.length > 0);
+    const canParts = has && parts.length > 0;
+    $('btnDownload').disabled = !has;
+    $('btnDownload2').disabled = !has;
+    $('btnDownloadParts').disabled = !canParts;
+    $('btnZip').disabled = !canParts;
+    $('btnZip2').disabled = !canParts;
+  }
+
+  function renderLog(result) {
+    $('lgFiles').textContent = String(state.files.length);
+    $('lgCols').textContent = result ? String(result.headers.length) : '0';
+    $('lgDates').textContent = result ? String(result.datesTotal) : '0';
+    $('lgMask').textContent = result ? String((result.maskCols || []).length) : '0';
+    $('lgParts').textContent = String(splitParts(result).length);
+
+    const warns = [];
+    if (result && result.noKey) warns.push('主键去重模式未勾选主键列，本次已跳过去重');
+    state.files.forEach((f) => {
+      if (f.notes && f.notes.length) warns.push(f.name + '：' + f.notes.join('；'));
+    });
+    const w = $('lgWarn');
+    w.textContent = warns.slice(0, MAX_LOGGED).join('　|　');
+    w.className = warns.length ? 'warn' : '';
+    w.title = warns.join('\n');
+  }
+
+  /* =====================================================================
+   * 9. 核心流水线（任意配置变化即实时重算）
+   * ===================================================================== */
+  function readConfig() {
+    return {
+      merge: $('optMerge').checked,
+      addSource: $('optSource').checked,
+      trim: $('optTrim').checked,
+      dropEmpty: $('optDropEmpty').checked,
+      normalizeDates: $('optDate').checked,
+      dedupe: $('optDedupe').checked,
+      dateCols: state.dateCols.slice(),
+      keyCols: state.keyCols.slice(),
+      mode: state.dedupeMode,
+      splitBom: $('optSplitBom').checked
+    };
+  }
+
+  function buildResult() {
+    if (!state.files.length) return null;
+    const cfg = readConfig();
+    const merged = mergeTables(state.files, cfg.addSource);
+    const headers = merged.headers;
+    const rawRows = merged.rows;
+    const sourceCol = cfg.addSource ? '_source_file' : null;
+
+    const cleaned = cleanRows({ headers: headers, rows: rawRows }, {
+      trim: cfg.trim,
+      dropEmpty: cfg.dropEmpty,
+      normalizeDates: cfg.normalizeDates,
+      dateCols: cfg.dateCols,
+      ignoreForEmpty: sourceCol ? [sourceCol] : []
+    });
+
+    const dedupe = dedupeRows(headers, cleaned.rows, cfg.dedupe, cfg.mode, cfg.keyCols);
+    const masked = applyMasking(headers, dedupe.rows, state.maskRules);
+
+    return {
+      headers: headers,
+      rows: masked.rows,
+      rawInput: rawRows.length,
+      droppedEmpty: cleaned.droppedEmpty,
+      cleanCount: cleaned.rows.length,
+      removedDup: dedupe.removed,
+      dedupeKeys: dedupe.keys,
+      noKey: !!dedupe.noKey,
+      dateFixed: cleaned.dateFixed,
+      datesTotal: cleaned.datesTotal,
+      dateCols: cleaned.dateCols,
+      maskCols: masked.cols,
+      sourceCol: sourceCol,
+      config: cfg
+    };
+  }
+
+  function recompute() {
+    const result = buildResult();
+    state.result = result;
+    if (!result) {
+      $('stInput').textContent = '0';
+      $('stEmpty').textContent = '0';
+      $('stClean').textContent = '0';
+      $('stDup').textContent = '0';
+      const f = $('stFinal');
+      f.textContent = '0';
+      f.appendChild(el('small', {}, '/0'));
+    } else {
+      $('stInput').textContent = String(result.rawInput);
+      $('stEmpty').textContent = String(result.droppedEmpty);
+      $('stClean').textContent = String(result.cleanCount);
+      $('stDup').textContent = String(result.removedDup);
+      const f = $('stFinal');
+      f.textContent = String(result.rows.length);
+      f.appendChild(el('small', {}, '/' + result.headers.length));
+    }
+    renderPreview(result);
+    renderOutput(result);
+    renderLog(result);
+  }
+
+  /* =====================================================================
+   * 10. 下载动作
+   * ===================================================================== */
+  function downloadMerged() {
+    const r = state.result;
+    if (!r || !r.rows.length) { toast('没有可下载的数据', true); return; }
+    const bytes = toCsvBytes(r.headers, r.rows, true);
+    downloadBlob(new Blob([bytes], { type: 'text/csv;charset=utf-8' }), 'tablekit_merged_' + stampName() + '.csv');
+    toast('已下载合并 CSV（' + r.rows.length + ' 行，UTF-8 BOM）');
+  }
+
+  function downloadPartsSequential() {
+    const r = state.result;
+    const parts = splitParts(r);
+    if (!r || !parts.length) { toast('请先选择拆分列', true); return; }
+    const withBom = $('optSplitBom').checked;
+    parts.forEach((p, i) => {
+      setTimeout(function () {
+        const bytes = toCsvBytes(r.headers, p.rows, withBom);
+        downloadBlob(new Blob([bytes], { type: 'text/csv;charset=utf-8' }), p.filename);
+      }, i * 320);
+    });
+    toast('开始逐个下载 ' + parts.length + ' 个拆分文件');
+  }
+
+  function downloadZip() {
+    const r = state.result;
+    const parts = splitParts(r);
+    if (!r || !parts.length) { toast('请先选择拆分列', true); return; }
+    const withBom = $('optSplitBom').checked;
+    const files = parts.map((p) => ({ name: p.filename, bytes: toCsvBytes(r.headers, p.rows, withBom) }));
+    const blob = buildZip(files, new Date());
+    downloadBlob(blob, 'tablekit_split_' + safeName(state.splitCol) + '_' + stampName() + '.zip');
+    toast('已打包 ' + parts.length + ' 个 CSV 文件（STORE 无压缩 ZIP）');
+  }
+
+  function loadSample() {
+    state.files = [];
+    state.dateCols = [];
+    state.keyCols = [];
+    state.maskRules = {};
+    state.splitCol = '';
+    state.dedupeMode = 'all';
+    setDefaults();
+    setDedupeMode('key');
+    state.splitCol = '城市';
+    [['orders_dept_a.csv', SAMPLE_A], ['orders_dept_b.csv', SAMPLE_B]].forEach((pair, idx) => {
+      const bytes = utf8Bytes(pair[1]);
+      const buf = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+      state.files.push(makeFileRecord(pair[0], buf, true));
+      if (idx === 1) {
+        // 示例演示：第二份数据也启用邮箱列脱敏规则
+        state.maskRules['邮箱'] = 'email';
+      }
+    });
+    syncColumnSelections();
+    state.maskRules['邮箱'] = 'email';
+    renderFileList();
+    renderColumnPickers();
+    recompute();
+    toast('示例数据已加载：2 个文件 → 合并 → 清洗 → 去重 → 脱敏 → 拆分打包');
+  }
+
+  function setDefaults() {
+    Object.keys(DEFAULTS).forEach((k) => { $(k).checked = DEFAULTS[k]; });
+  }
+
+  function setDedupeMode(mode) {
+    state.dedupeMode = mode;
+    Array.prototype.forEach.call($('dedupeMode').querySelectorAll('button'), (b) => {
+      b.classList.toggle('on', b.getAttribute('data-mode') === mode);
+    });
+    $('keyColsWrap').classList.toggle('hidden', !(mode === 'key' && $('optDedupe').checked));
+  }
+
+  /* =====================================================================
+   * 11. 事件绑定与初始化
+   * ===================================================================== */
+  function bind() {
+    const drop = $('drop');
+    const input = $('fileInput');
+
+    drop.addEventListener('click', function (e) {
+      if (e.target !== input) input.click();
+    });
+    drop.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
+    });
+    input.addEventListener('change', function () {
+      addFiles(input.files);
+      input.value = '';
+    });
+    ['dragenter', 'dragover'].forEach((ev) => {
+      drop.addEventListener(ev, function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        drop.classList.add('over');
+      });
+    });
+    ['dragleave', 'dragend'].forEach((ev) => {
+      drop.addEventListener(ev, function (e) {
+        e.preventDefault();
+        if (ev === 'dragleave' && drop.contains(e.relatedTarget)) return;
+        drop.classList.remove('over');
+      });
+    });
+    drop.addEventListener('drop', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      drop.classList.remove('over');
+      const dt = e.dataTransfer;
+      if (!dt) return;
+      if (dt.files && dt.files.length) addFiles(dt.files);
+      else toast('未检测到文件，请拖拽 .csv / .tsv 文件', true);
+    });
+    // 阻止页面其它区域拖拽文件时浏览器直接打开文件
+    ['dragover', 'drop'].forEach((ev) => {
+      window.addEventListener(ev, function (e) {
+        if (!drop.contains(e.target)) e.preventDefault();
+      });
+    });
+
+    $('btnClearFiles').addEventListener('click', function () {
+      state.files = [];
+      state.dateCols = [];
+      state.keyCols = [];
+      state.maskRules = {};
+      state.splitCol = '';
+      $('fileInput').value = '';
+      renderFileList();
+      renderColumnPickers();
+      recompute();
+      toast('已清空文件');
+    });
+
+    $('btnReload').addEventListener('click', function () {
+      if (!state.files.length) { toast('当前没有已加载文件，可先加载示例数据', true); return; }
+      renderFileList();
+      renderColumnPickers();
+      recompute();
+      toast('已按当前文件重新计算');
+    });
+
+    $('btnSample').addEventListener('click', loadSample);
+
+    ['optMerge', 'optSource', 'optTrim', 'optDropEmpty', 'optDate', 'optDedupe', 'optSplitBom'].forEach((id) => {
+      $(id).addEventListener('change', function () {
+        if (id === 'optSource' || id === 'optMerge') {
+          syncColumnSelections();
+          renderColumnPickers();
+        }
+        if (id === 'optDate' || id === 'optDedupe') {
+          $('dateFieldWrap').classList.toggle('hidden', !$('optDate').checked);
+          $('keyColsWrap').classList.toggle('hidden', !(state.dedupeMode === 'key' && $('optDedupe').checked));
+        }
+        recompute();
+      });
+    });
+
+    Array.prototype.forEach.call($('dedupeMode').querySelectorAll('button'), (b) => {
+      b.addEventListener('click', function () {
+        setDedupeMode(b.getAttribute('data-mode'));
+        recompute();
+      });
+    });
+
+    $('splitCol').addEventListener('change', function () {
+      state.splitCol = $('splitCol').value;
+      recompute();
+    });
+
+    $('btnDownload').addEventListener('click', downloadMerged);
+    $('btnDownload2').addEventListener('click', downloadMerged);
+    $('btnDownloadParts').addEventListener('click', downloadPartsSequential);
+    $('btnZip').addEventListener('click', downloadZip);
+    $('btnZip2').addEventListener('click', downloadZip);
+
+    $('btnResetCfg').addEventListener('click', function () {
+      setDefaults();
+      setDedupeMode('all');
+      if (state.files.length) {
+        state.dateCols = [];
+        state.keyCols = [];
+        state.maskRules = {};
+        state.splitCol = '';
+        syncColumnSelections();
+        renderColumnPickers();
+      }
+      recompute();
+      toast('已恢复默认配置');
+    });
+
+    window.addEventListener('error', function (ev) {
+      if (ev && ev.message) toast('运行出错：' + ev.message, true);
+    });
+  }
+
+  function init() {
+    setDefaults();
+    setDedupeMode('all');
+    bind();
+    renderFileList();
+    renderColumnPickers();
+    recompute();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+</body>
+</html>
